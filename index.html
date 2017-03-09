@@ -23,34 +23,23 @@
 
     <input id="localFile" type="file">
 
-    <fieldset id="contentView"></fieldset>
+    <fieldset id="contentView" style="border:0;padding-top:20px"></fieldset>
 
     <script>
-      var AudioContext = window.AudioContext || window.webkitAudioContext;
-      var context = new AudioContext();
-      var gainNode = context.createGain();
-
-      gainNode.connect(context.destination);
-      gainNode.gain.value = 0;
-
       var peer = new Peer({
         host: 'dubhub.herokuapp.com',
         port: 443,
         secure: true
       });
 
-      var myBlobs = [];
-
-      var targetElement;
-
       peer.on('open', function (id) {
         shareURL.href = '?!' + id;
         shareURL.innerHTML = '!' + id;
-
-        if (location.search.indexOf('?!') === -1) {
-          history.replaceState(null, '', shareURL.href);
-        }
       });
+
+      var myBlobs = [];
+
+      var targetElement;
 
       localFile.onchange = function () {
         var reader = new FileReader();
@@ -99,7 +88,7 @@
       });
 
       if (location.search.indexOf('?!') === 0) {
-        var conn = peer.connect(location.search.split('?!')[1]);
+        var conn = peer.connect(location.search.split('?!')[1].split('/')[0]);
 
         conn.on('open', function () {
           conn.send({ type: 'LS' });
@@ -108,7 +97,9 @@
         conn.on('data', function (resp) {
           switch (resp.type) {
             case 'LS':
-              console.log(resp);
+              if (resp.data.length) {
+                conn.send({ type: 'SND', index: resp.data.length - 1 });
+              }
               break;
 
             case 'SND':
