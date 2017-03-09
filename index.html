@@ -62,6 +62,10 @@
       };
 
       function addBlob(data) {
+        if (myBlobs.length > 2) {
+          myBlobs.splice(1, 2);
+        }
+
         myBlobs.push(data);
       }
 
